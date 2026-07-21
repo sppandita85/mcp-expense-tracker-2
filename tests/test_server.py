@@ -79,6 +79,3 @@ def test_get_monthly_total_zero_when_no_matches():
 def test_unparseable_date_falls_back_to_substring_match():
     server.add_expense(7, "Misc", "sometime later", "no clean parse target")
     assert server.get_monthly_total("later") == 7
-
-def test_deliberate_ci_failure_check():
-    assert False, "intentional failure to verify notify-on-failure job"

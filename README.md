@@ -49,7 +49,7 @@ claude mcp add --transport http expense-tracker http://localhost:8000/mcp
 1. Push this repo to GitHub (already done if you're reading this from the
    repo — see below).
 2. Go to [fastmcp.cloud](https://fastmcp.cloud) and sign in with GitHub.
-3. Authorize FastMCP Cloud to access this repository (`mcp-expense-tracker`).
+3. Authorize FastMCP Cloud to access this repository (`mcp-expense-tracker-2`).
 4. Create a new project from the repo. FastMCP Cloud auto-detects the
    entrypoint by finding the `FastMCP` instance (`mcp`) in `server.py` — no
    extra config needed.
@@ -73,6 +73,39 @@ claude mcp add --transport http expense-tracker http://localhost:8000/mcp
    - "Add a $12 lunch expense today in the Food category"
    - "What's my total spend this month?"
    - "Break down this month's expenses by category"
+
+## CI/CD
+
+`.github/workflows/ci-cd.yml` runs on every push and on pull requests into
+`main`:
+
+1. **Test** — installs `requirements-dev.txt` and runs the `pytest` suite in
+   `tests/`.
+2. **Deploy gate** — runs only after tests pass on a push to `main`. There's
+   nothing to actually push here: FastMCP Cloud already watches this repo via
+   its own GitHub App and redeploys automatically whenever `main` updates, so
+   this job just confirms the deploy is green. If you later get a deploy
+   webhook URL from FastMCP Cloud, add it as a repo secret named
+   `FASTMCP_DEPLOY_HOOK_URL` and this job will call it automatically.
+3. **Notify on failure** — if the test job fails, a job opens a GitHub issue
+   labeled `ci-failure` (or comments on the existing open one) so the failure
+   isn't silent. Assign it to whoever owns triage, or edit the workflow step
+   to `@mention`/assign specific people.
+
+Run the same test suite locally before pushing:
+
+```bash
+pip install -r requirements-dev.txt
+pytest tests/ -v
+```
+
+### Status dashboard
+
+[`dashboard/index.html`](dashboard/index.html) is a self-contained status
+page (no build step, no dependencies) that reads recent workflow runs and
+open `ci-failure` issues straight from the public GitHub API. Open it
+locally in a browser, or enable **GitHub Pages** for this repo (Settings →
+Pages → deploy from `main` / `/dashboard`) to get a hosted URL for the team.
 
 ## Notes
 

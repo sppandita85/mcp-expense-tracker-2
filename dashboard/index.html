@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Expense Tracker — CI/CD Pipeline</title>
+<style>
+  :root {
+    --bg: #f3f5f8;
+    --surface: #ffffff;
+    --surface-2: #eaeef3;
+    --border: #d7dde5;
+    --text: #161a20;
+    --text-dim: #5b6472;
+    --accent: #2f6690;
+    --accent-soft: #e4edf3;
+    --success: #1f8a4c;
+    --success-soft: #e3f5ea;
+    --warning: #b5790f;
+    --warning-soft: #faf0dc;
+    --danger: #c22f2f;
+    --danger-soft: #fbe6e6;
+    --neutral: #5b6472;
+    --neutral-soft: #eaeef3;
+    --shadow: 0 1px 2px rgba(20, 24, 30, 0.06);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1017;
+      --surface: #141822;
+      --surface-2: #1b2029;
+      --border: #2a3140;
+      --text: #e6e9ef;
+      --text-dim: #93a0b4;
+      --accent: #6fb3e0;
+      --accent-soft: #16283a;
+      --success: #4ad080;
+      --success-soft: #113322;
+      --warning: #e6b04a;
+      --warning-soft: #3a2c10;
+      --danger: #f2716b;
+      --danger-soft: #3a1616;
+      --neutral: #93a0b4;
+      --neutral-soft: #1b2029;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #0d1017;
+    --surface: #141822;
+    --surface-2: #1b2029;
+    --border: #2a3140;
+    --text: #e6e9ef;
+    --text-dim: #93a0b4;
+    --accent: #6fb3e0;
+    --accent-soft: #16283a;
+    --success: #4ad080;
+    --success-soft: #113322;
+    --warning: #e6b04a;
+    --warning-soft: #3a2c10;
+    --danger: #f2716b;
+    --danger-soft: #3a1616;
+    --neutral: #93a0b4;
+    --neutral-soft: #1b2029;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+
+  :root[data-theme="light"] {
+    --bg: #f3f5f8;
+    --surface: #ffffff;
+    --surface-2: #eaeef3;
+    --border: #d7dde5;
+    --text: #161a20;
+    --text-dim: #5b6472;
+    --accent: #2f6690;
+    --accent-soft: #e4edf3;
+    --success: #1f8a4c;
+    --success-soft: #e3f5ea;
+    --warning: #b5790f;
+    --warning-soft: #faf0dc;
+    --danger: #c22f2f;
+    --danger-soft: #fbe6e6;
+    --neutral: #5b6472;
+    --neutral-soft: #eaeef3;
+    --shadow: 0 1px 2px rgba(20, 24, 30, 0.06);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  main {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+  }
+
+  .mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  header.page-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .eyebrow {
+    font-size: 0.72rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    font-weight: 600;
+  }
+
+  h1 {
+    margin: 0.2rem 0 0;
+    font-size: 1.6rem;
+    font-weight: 700;
+    text-wrap: balance;
+  }
+
+  .repo-link {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 0.85rem;
+  }
+  .repo-link:hover { text-decoration: underline; }
+
+  .head-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.4rem;
+  }
+
+  button#refresh {
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.45rem 0.85rem;
+    cursor: pointer;
+  }
+  button#refresh:hover { filter: brightness(1.05); }
+  button#refresh:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button#refresh:disabled { opacity: 0.6; cursor: default; }
+
+  #updated {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+  }
+
+  section.card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    padding: 1.25rem 1.4rem;
+  }
+
+  section.card > h2 {
+    margin: 0 0 1rem;
+    font-size: 0.78rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    font-weight: 700;
+  }
+
+  /* Pipeline stage strip */
+  .pipeline {
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+  .stage {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    align-items: flex-start;
+    min-width: 9rem;
+  }
+  .stage-name {
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    font-weight: 600;
+  }
+  .connector {
+    flex: 1;
+    height: 2px;
+    background: var(--border);
+    margin: 0 0.5rem;
+    min-width: 1.5rem;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    width: fit-content;
+  }
+  .chip::before {
+    content: "";
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+  }
+  .chip.success { background: var(--success-soft); color: var(--success); }
+  .chip.failure { background: var(--danger-soft); color: var(--danger); }
+  .chip.pending { background: var(--warning-soft); color: var(--warning); }
+  .chip.neutral { background: var(--neutral-soft); color: var(--neutral); }
+
+  .chip.pending::before { animation: pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .chip.pending::before { animation: none; }
+  }
+
+  /* Alerts */
+  .alert-empty {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--success);
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+  ul.alert-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .alert-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.65rem 0.8rem;
+    background: var(--danger-soft);
+    border-radius: 8px;
+    font-size: 0.85rem;
+  }
+  .alert-item a { color: var(--text); font-weight: 600; text-decoration: none; }
+  .alert-item a:hover { text-decoration: underline; }
+  .alert-meta { color: var(--text-dim); font-size: 0.75rem; white-space: nowrap; }
+
+  /* Runs table */
+  .table-scroll { overflow-x: auto; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+  thead th {
+    text-align: left;
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    font-weight: 600;
+    padding: 0 0.6rem 0.6rem;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  tbody td {
+    padding: 0.65rem 0.6rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  .commit-msg {
+    color: var(--text);
+    text-decoration: none;
+    white-space: normal;
+    display: block;
+    max-width: 26ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .commit-msg:hover { text-decoration: underline; }
+  .sha-link { color: var(--text-dim); text-decoration: none; }
+  .sha-link:hover { color: var(--accent); }
+  .run-link { color: var(--accent); text-decoration: none; }
+  .run-link:hover { text-decoration: underline; }
+
+  .status-line {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    padding: 0.5rem 0;
+  }
+  .status-line.error { color: var(--danger); }
+
+  footer {
+    color: var(--text-dim);
+    font-size: 0.75rem;
+    text-align: center;
+  }
+  footer a { color: var(--text-dim); }
+</style>
+</head>
+<body>
+<main>
+  <header class="page-head">
+    <div>
+      <div class="eyebrow">CI / CD</div>
+      <h1>Expense Tracker MCP Server</h1>
+      <a class="repo-link" id="repo-link" href="#" target="_blank" rel="noopener">github.com/sppandita85/mcp-expense-tracker-2</a>
+    </div>
+    <div class="head-actions">
+      <button id="refresh" type="button">Refresh</button>
+      <span id="updated"></span>
+    </div>
+  </header>
+
+  <section class="card">
+    <h2>Pipeline</h2>
+    <div class="pipeline" id="pipeline">
+      <div class="stage">
+        <span class="stage-name">Push to GitHub</span>
+        <span class="chip neutral" id="stage-push">—</span>
+      </div>
+      <div class="connector"></div>
+      <div class="stage">
+        <span class="stage-name">Test</span>
+        <span class="chip neutral" id="stage-test">—</span>
+      </div>
+      <div class="connector"></div>
+      <div class="stage">
+        <span class="stage-name">Deploy gate</span>
+        <span class="chip neutral" id="stage-deploy">—</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Active alerts</h2>
+    <div id="alerts"><div class="status-line">Loading…</div></div>
+  </section>
+
+  <section class="card">
+    <h2>Recent runs</h2>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th>Branch</th>
+            <th>Commit</th>
+            <th>Actor</th>
+            <th>When</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="runs-body">
+          <tr><td colspan="6" class="status-line">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    Reads live from the GitHub Actions API. No login required for a public repo.
+  </footer>
+</main>
+
+<script>
+  const OWNER = "sppandita85";
+  const REPO = "mcp-expense-tracker-2";
+  const API = `https://api.github.com/repos/${OWNER}/${REPO}`;
+
+  document.getElementById("repo-link").href = `https://github.com/${OWNER}/${REPO}`;
+
+  function chipClass(status, conclusion) {
+    if (status !== "completed") return "pending";
+    if (conclusion === "success") return "success";
+    if (conclusion === "failure" || conclusion === "timed_out" || conclusion === "action_required") return "failure";
+    return "neutral";
+  }
+
+  function chipLabel(status, conclusion) {
+    if (status !== "completed") return status.replace(/_/g, " ");
+    return (conclusion || "unknown").replace(/_/g, " ");
+  }
+
+  function timeAgo(iso) {
+    const diffMs = Date.now() - new Date(iso).getTime();
+    const mins = Math.round(diffMs / 60000);
+    if (mins < 1) return "just now";
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.round(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    const days = Math.round(hrs / 24);
+    return `${days}d ago`;
+  }
+
+  function setStage(el, status, conclusion) {
+    el.className = `chip ${chipClass(status, conclusion)}`;
+    el.textContent = chipLabel(status, conclusion);
+  }
+
+  async function fetchJSON(url) {
+    const res = await fetch(url, { headers: { Accept: "application/vnd.github+json" } });
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+    return res.json();
+  }
+
+  async function loadRuns() {
+    const tbody = document.getElementById("runs-body");
+    try {
+      const data = await fetchJSON(`${API}/actions/runs?per_page=10`);
+      const runs = data.workflow_runs || [];
+
+      if (runs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="status-line">No workflow runs yet — push a commit to trigger one.</td></tr>`;
+        setStage(document.getElementById("stage-push"), "completed", "success");
+        return;
+      }
+
+      tbody.innerHTML = runs.map((run) => {
+        const sha = run.head_sha.slice(0, 7);
+        const msg = (run.head_commit && run.head_commit.message ? run.head_commit.message : "").split("\n")[0];
+        return `
+          <tr>
+            <td><span class="chip ${chipClass(run.status, run.conclusion)}">${chipLabel(run.status, run.conclusion)}</span></td>
+            <td class="mono">${run.head_branch}</td>
+            <td>
+              <a class="commit-msg" href="${run.html_url}" target="_blank" rel="noopener" title="${msg.replace(/"/g, "&quot;")}">${msg || "(no message)"}</a>
+              <a class="sha-link mono" href="https://github.com/${OWNER}/${REPO}/commit/${run.head_sha}" target="_blank" rel="noopener">${sha}</a>
+            </td>
+            <td>${run.actor ? run.actor.login : "—"}</td>
+            <td class="mono">${timeAgo(run.updated_at)}</td>
+            <td><a class="run-link" href="${run.html_url}" target="_blank" rel="noopener">View →</a></td>
+          </tr>`;
+      }).join("");
+
+      const latestOnMain = runs.find((r) => r.head_branch === "main") || runs[0];
+      setStage(document.getElementById("stage-push"), "completed", "success");
+      setStage(document.getElementById("stage-test"), latestOnMain.status, latestOnMain.conclusion);
+
+      const deployEl = document.getElementById("stage-deploy");
+      if (latestOnMain.head_branch !== "main") {
+        deployEl.className = "chip neutral";
+        deployEl.textContent = "n/a (not main)";
+      } else if (latestOnMain.status !== "completed") {
+        deployEl.className = "chip pending";
+        deployEl.textContent = "waiting on tests";
+      } else if (latestOnMain.conclusion === "success") {
+        deployEl.className = "chip success";
+        deployEl.textContent = "deployed via FastMCP Cloud";
+      } else {
+        deployEl.className = "chip neutral";
+        deployEl.textContent = "skipped (tests failed)";
+      }
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="6" class="status-line error">Couldn't load runs: ${err.message}</td></tr>`;
+    }
+  }
+
+  async function loadAlerts() {
+    const el = document.getElementById("alerts");
+    try {
+      const issues = await fetchJSON(`${API}/issues?state=open&labels=ci-failure`);
+      if (issues.length === 0) {
+        el.innerHTML = `<div class="alert-empty">✓ No active build failures</div>`;
+        return;
+      }
+      el.innerHTML = `<ul class="alert-list">${issues.map((issue) => `
+        <li class="alert-item">
+          <a href="${issue.html_url}" target="_blank" rel="noopener">#${issue.number} ${issue.title}</a>
+          <span class="alert-meta mono">opened ${timeAgo(issue.created_at)}</span>
+        </li>`).join("")}</ul>`;
+    } catch (err) {
+      el.innerHTML = `<div class="status-line error">Couldn't load alerts: ${err.message}</div>`;
+    }
+  }
+
+  async function loadAll() {
+    const btn = document.getElementById("refresh");
+    btn.disabled = true;
+    await Promise.all([loadRuns(), loadAlerts()]);
+    document.getElementById("updated").textContent = `Updated ${new Date().toLocaleTimeString()}`;
+    btn.disabled = false;
+  }
+
+  document.getElementById("refresh").addEventListener("click", loadAll);
+  loadAll();
+</script>
+</body>
+</html>
